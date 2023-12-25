@@ -288,7 +288,6 @@ export class SMTPClient {
       await this.#connection.writeCmdAndAssert(CommandCode.OK, ".\r\n");
 
       dataMode = false;
-      await this.#cleanup();
       this.#que.next();
     } catch (ex) {
       if (dataMode) {
@@ -298,7 +297,6 @@ export class SMTPClient {
         });
         throw ex;
       }
-      await this.#cleanup();
       this.#que.next();
       throw ex;
     }
@@ -368,18 +366,7 @@ export class SMTPClient {
         btoa(this.config.connection.auth.password),
       );
     }
-
-    await this.#cleanup();
   }
 
   #supportedFeatures = new Set<string>();
-
-  async #cleanup() {
-    this.#connection.writeCmd("NOOP");
-
-    while (true) {
-      const cmd = await this.#connection.readCmd();
-      if (cmd && cmd.code === 250) return;
-    }
-  }
 }
